@@ -5,25 +5,25 @@
 [![FastAPI](https://img.shields.io/badge/FastAPI-009688?style=for-the-badge&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com/)
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
+[![CrewAI](https://img.shields.io/badge/CrewAI-FF6B6B?style=for-the-badge&logo=ai&logoColor=white)](https://www.crewai.com/)
 
-**Lumina AI** is an institutional-grade, multimodal Generative AI platform designed to transform complex topics into structured, visually-rich educational "Concept Packs." By leveraging cutting-edge LLMs and specialized image generation, it tailors learning experiences for everyone from elementary students to professional researchers.
+**Lumina AI** is a state-of-the-art, multimodal Generative AI platform designed to transform complex topics into structured, visually-rich educational "Concept Packs." By combining autonomous **Multi-Agent Research** with high-fidelity image generation and **DevOps** excellence, it provides a premium learning experience for students and professionals alike.
 
 ---
 
 ## ✨ Core Features
 
-*   **⚡ Multimodal Learning Experience**: Combines deep narrative explanations with high-fidelity, text-free educational diagrams.
-*   **🎯 Grade-Level Tailoring**: Dynamically adjusts vocabulary, complexity, and examples for **Elementary**, **High School**, **College**, and **Professional** audiences.
-*   **🔠 Structured Knowledge**: Generates structured JSON output containing narratives, key concepts, flashcards, and summary points.
-*   **🖼️ Visual Flashcards**: Integrates specialized Image Generation APIs to create complementary visuals for every major concept.
-*   **🔍 Multi-Agent Research**: Utilizes a collaborative crew of AI agents (Researcher & Writer) equipped with real-time web search and scraping for deep, authentic knowledge retrieval.
-*   **🚀 Production-Ready Architecture**: Built for the cloud with specialized container optimization and multi-environment Kubernetes support.
+*   **🕵️ Agentic Research Workflow**: Utilizes a collaborative crew of AI agents (Researcher & Writer) powered by **CrewAI** for deep, real-time web research and scraping.
+*   **⚡ Multimodal Learning**: Pairs structured narrative content with high-fidelity diagrams and educational visuals.
+*   **🎯 Grade-Level Personalization**: Dynamically adjusts content complexity for **Elementary**, **High School**, **College**, and **Professional** levels.
+*   **💎 Premium Design System**: A stunning, modern interface featuring **Glassmorphism**, dark mode optimization, and ultra-smooth animations.
+*   **🚀 Production-Ready DevOps**: Fully containerized and optimized for **Kubernetes** (local & AWS EKS) with CI/CD integration.
 
 ---
 
 ## 🏗️ Technical Architecture
 
-The platform architecture ensures scalability, high availability, and rapid performance through a decoupled frontend-backend system.
+The platform follows a decoupled, microservices-ready architecture for maximum scalability.
 
 ```mermaid
 graph TD
@@ -34,7 +34,9 @@ graph TD
         FP -- API_URL --> BS[Backend Service]
         BS -- Port: 8000 --> BP((Backend Pods))
     end
-    BP -- v1beta REST --> Gemini[Google Gemini API]
+    BP -- CrewAI --> Agents{Agentic Crew}
+    Agents -- Web Search --> Serper[Serper API]
+    BP -- REST --> Gemini[Google Gemini API]
     BP -- REST --> ImageAPI[Image Generation API]
 ```
 
@@ -43,16 +45,15 @@ graph TD
 ## 🛠️ Infrastructure & DevOps Excellence
 
 ### 🐳 Optimized Containerization
-Initially, the application containers exceeded **9GB** due to heavy dependency overhead. We implemented strategic optimizations to reach a lightweight **1.16GB** footprint:
-*   **CPU-Only PyTorch**: Stripped out 5GB+ of unnecessary CUDA/GPU libraries.
-*   **Split Dependencies**: Separated frontend and backend requirements to reduce image bloat.
-*   **Native API Adoption**: Switched to the native Gemini REST API to eliminate secondary library dependencies.
+Strategic optimizations reduced our container footprint from **9GB** to just **1.16GB**:
+*   **CPU-Only Builds**: Removed 5GB+ of redundant CUDA libraries.
+*   **Multi-Stage Dockerfiles**: Separate builds for frontend and backend to minimize bloat.
+*   **Native REST Integration**: Direct API calls to Gemini eliminate the need for heavy SDK dependencies.
 
 ### ☸️ Kubernetes Orchestration
-The application is ready for both local and cloud environments:
-*   **Local (Kind/Docker Desktop)**: Optimized with `IfNotPresent` pull policies and `NodePort` mapping for rapid testing.
-*   **Cloud (Amazon EKS)**: Deployed with managed `t3.micro` nodes, custom health probes, and `LoadBalancer` integration for production-grade availability.
-*   **Zero-Downtime Updates**: Configured with `RollingUpdate` strategies to ensure continuous service during new releases.
+*   **Local (Kind/Docker Desktop)**: Optimized manifests with `NodePort` mapping and local secret management.
+*   **Cloud (Amazon EKS)**: Managed node groups on `t3.micro` instances with custom health probes and `LoadBalancer` services.
+*   **CI/CD Pipeline**: Integrated `Jenkinsfile` and GitHub Actions for automated building and deployment.
 
 ---
 
@@ -62,46 +63,39 @@ The application is ready for both local and cloud environments:
 Create a `.env` file in the root directory:
 ```ini
 GEMINI_API_KEY=your_key
-LLM_MODEL=gemini-3-flash-preview
-LLM_BASE_URL=https://generativelanguage.googleapis.com/v1beta
+SERPER_API_KEY=your_key
+LLM_MODEL=gemini-1.5-flash
 IMAGE_API_KEY=your_key
-IMAGE_MODEL=img4
 IMAGE_BASE_URL=https://api.infip.pro/v1
-LOG_LEVEL=INFO
 ```
 
-### 2. Local Kubernetes Deployment (Docker Desktop)
-```powershell
-# 1. Switch to local context
-kubectl config use-context docker-desktop
+### 2. Local Deployment (Streamlit + FastAPI)
+```bash
+# Terminal 1: Backend
+python -m backend.main
 
-# 2. Apply Secrets and Manifests
+# Terminal 2: Frontend
+streamlit run frontend/app.py
+```
+
+### 3. Kubernetes Deployment
+```bash
+# Apply all manifests
 kubectl apply -f k8s/secrets.yaml
 kubectl apply -f k8s/
 
-# 3. Access the app
+# Access via port-forward
 kubectl port-forward service/frontend-service 8501:80
-```
-Open [http://localhost:8501](http://localhost:8501)
-
-### 3. Cloud Deployment (AWS EKS)
-```powershell
-# Create the cluster
-eksctl create cluster --name edugen-cluster --region eu-north-1 --node-type t3.micro --nodes 2
-
-# Deploy
-kubectl apply -f k8s/
 ```
 
 ---
 
 ## 📂 Project Structure
-*   `backend/`: FastAPI application server and AI integration services.
-*   `frontend/`: Streamlit interactive user interface.
-*   `k8s/`: Kubernetes manifests for Deployments, Services, and Secrets.
-*   `utils/`: Shared prompt engineering and utility functions.
-*   `scripts/`: Automation scripts for deployment and environment setup.
-*   `docs/`: High-level design documents and project reports.
+*   `backend/`: FastAPI server, LLM services, and Agentic Research (CrewAI).
+*   `frontend/`: Premium Streamlit interface with custom CSS/JS injection.
+*   `k8s/`: Kubernetes manifests for production-grade orchestration.
+*   `utils/`: Advanced prompt engineering and shared utilities.
+*   `scripts/`: Automation for AWS EKS deployment and setup.
 
 ---
 
