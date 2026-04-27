@@ -2,8 +2,8 @@ pipeline {
     agent any
 
     environment {
-        DOCKER_IMAGE_BACKEND = "backend"
-        DOCKER_IMAGE_FRONTEND = "frontend"
+        DOCKER_IMAGE_BACKEND = "lumina-backend"
+        DOCKER_IMAGE_FRONTEND = "lumina-frontend"
         REGISTRY = "local"
     }
 

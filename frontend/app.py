@@ -1128,7 +1128,7 @@ else:
                         )
 
 # Bottom anchor
-st.markdown('<div id="edugen-bottom-anchor" style="height:1px;"></div>', unsafe_allow_html=True)
+st.markdown('<div id="lumina-bottom-anchor" style="height:1px;"></div>', unsafe_allow_html=True)
 
 if st.session_state.get("_scroll_to_bottom"):
     st.markdown("""
@@ -1136,7 +1136,7 @@ if st.session_state.get("_scroll_to_bottom"):
     (function() {
         function scrollToBottom() {
             const main = window.parent.document.querySelector('section.main');
-            const anchor = window.parent.document.getElementById('edugen-bottom-anchor');
+            const anchor = window.parent.document.getElementById('lumina-bottom-anchor');
             if (anchor) {
                 anchor.scrollIntoView({ behavior: 'smooth', block: 'end' });
             } else if (main) {
