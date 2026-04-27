@@ -15,7 +15,7 @@
 
 *   **🕵️ Agentic Research Workflow**: Utilizes a collaborative crew of AI agents (Researcher & Writer) powered by **CrewAI** for deep, real-time web research and scraping.
 *   **⚡ Multimodal Learning**: Pairs structured narrative content with high-fidelity diagrams and educational visuals.
-*   **🎯 Grade-Level Personalization**: Dynamically adjusts content complexity for **Elementary**, **High School**, **College**, and **Professional** levels.
+*   **🎓 Professional-Grade Rigor**: Enforces a high standard of academic and professional depth across all generated study guides.
 *   **💎 Premium Design System**: A stunning, modern interface featuring **Glassmorphism**, dark mode optimization, and ultra-smooth animations.
 *   **🚀 Production-Ready DevOps**: Fully containerized and optimized for **Kubernetes** (local & AWS EKS) with CI/CD integration.
 
