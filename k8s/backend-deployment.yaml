@@ -21,7 +21,7 @@ spec:
     spec:
       containers:
       - name: backend
-        image: 968641182612.dkr.ecr.eu-north-1.amazonaws.com/edugen-backend:latest
+        image: 968641182612.dkr.ecr.eu-north-1.amazonaws.com/lumina-backend:latest
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 8000
@@ -30,38 +30,38 @@ spec:
           httpGet:
             path: /
             port: 8000
-          initialDelaySeconds: 30
+          initialDelaySeconds: 120
           periodSeconds: 10
         readinessProbe:
           httpGet:
             path: /
             port: 8000
-          initialDelaySeconds: 20
+          initialDelaySeconds: 60
           periodSeconds: 5
         # Resource Management
         resources:
           requests:
-            cpu: "50m"
-            memory: "64Mi"
+            cpu: "250m"
+            memory: "512Mi"
           limits:
-            cpu: "100m"
-            memory: "128Mi"
+            cpu: "500m"
+            memory: "1536Mi"
         # Environment Variables from Secrets
         env:
         - name: LLM_API_KEY
           valueFrom:
             secretKeyRef:
-              name: edugen-secrets
+              name: lumina-secrets
               key: GEMINI_API_KEY
         - name: IMAGE_API_KEY
           valueFrom:
             secretKeyRef:
-              name: edugen-secrets
+              name: lumina-secrets
               key: IMAGE_API_KEY
         - name: SERPER_API_KEY
           valueFrom:
             secretKeyRef:
-              name: edugen-secrets
+              name: lumina-secrets
               key: SERPER_API_KEY
         - name: LLM_MODEL
           value: "gemini-3-flash-preview"

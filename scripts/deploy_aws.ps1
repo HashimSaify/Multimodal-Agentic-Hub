@@ -2,7 +2,7 @@
 # Run this script as Administrator in PowerShell
 
 $Region = "eu-north-1"
-$ClusterName = "edugen-cluster"
+$ClusterName = "lumina-cluster"
 
 # 1. Install/Check Dependencies
 Write-Host "--- Checking Dependencies ---" -ForegroundColor Cyan
@@ -41,11 +41,11 @@ $SecretContent | Set-Content $SecretFile
 # 3. AWS Infrastructure Setup
 Write-Host "`n--- AWS ECR Setup ---" -ForegroundColor Cyan
 $AccountId = (aws sts get-caller-identity --query Account --output text)
-$BackendRepo = "$AccountId.dkr.ecr.$Region.amazonaws.com/edugen-backend"
-$FrontendRepo = "$AccountId.dkr.ecr.$Region.amazonaws.com/edugen-frontend"
+$BackendRepo = "$AccountId.dkr.ecr.$Region.amazonaws.com/lumina-backend"
+$FrontendRepo = "$AccountId.dkr.ecr.$Region.amazonaws.com/lumina-frontend"
 
-aws ecr create-repository --repository-name edugen-backend --region $Region 2>$null
-aws ecr create-repository --repository-name edugen-frontend --region $Region 2>$null
+aws ecr create-repository --repository-name lumina-backend --region $Region 2>$null
+aws ecr create-repository --repository-name lumina-frontend --region $Region 2>$null
 
 aws ecr get-login-password --region $Region | docker login --username AWS --password-stdin "$AccountId.dkr.ecr.$Region.amazonaws.com"
 
