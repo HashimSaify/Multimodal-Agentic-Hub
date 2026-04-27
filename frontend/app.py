@@ -15,7 +15,7 @@ else:
     API_URL = os.environ.get("API_URL", "http://127.0.0.1:8000")
 
 st.set_page_config(
-    page_title="EduGen AI",
+    page_title="Lumina AI",
     page_icon="🎓",
     layout="wide",
     initial_sidebar_state="expanded",
@@ -34,23 +34,7 @@ for k, v in defaults.items():
         st.session_state[k] = v
 
 # Convert legacy history format gracefully
-if "history" in st.session_state and not st.session_state.sessions:
-    for h in st.session_state.history:
-        sid = str(uuid.uuid4())
-        st.session_state.sessions[sid] = {
-            "id": sid,
-            "title": h.get("topic", "Untitled"),
-            "timestamp": h.get("timestamp", time.time()),
-            "turns": [
-                {
-                    "topic": h.get("topic"),
-                    "grade": h.get("grade"),
-                    "content": h.get("content", {}),
-                    "images": h.get("images", {}),
-                    "timestamp": h.get("timestamp", time.time())
-                }
-            ]
-        }
+# (Removed as migration is complete)
 
 def inject_css():
     st.markdown("""
@@ -176,14 +160,24 @@ def inject_css():
         margin-left: auto !important;
         margin-right: auto !important;
         overflow-anchor: none !important;
+        overflow: visible !important;
     }
 
     section.main {
         overflow-anchor: none !important;
+        overflow-y: auto !important;
+        overflow-x: hidden !important;
     }
 
     section.main > div {
         overflow-anchor: none !important;
+        width: 100% !important;
+    }
+
+    /* Prevent nested scrolls in chat and tabs */
+    section.main [data-testid="stVerticalBlock"], 
+    section.main [data-testid="stChatMessageContainer"] {
+        overflow: visible !important;
     }
 
     /* ============================================================
@@ -596,6 +590,8 @@ def inject_css():
     .stTabs [data-baseweb="tab-panel"] {
         padding-top: 1.6rem !important;
         background: transparent !important;
+        overflow: visible !important;
+        height: auto !important;
     }
 
     /* ============================================================
@@ -630,6 +626,15 @@ def inject_css():
     .stMarkdown hr {
         border-color: var(--border) !important;
         margin: 1.8rem 0 !important;
+    }
+
+    .stMarkdown {
+        word-wrap: break-word !important;
+        overflow-wrap: break-word !important;
+    }
+
+    .stMarkdown a {
+        word-break: break-all !important;
     }
 
     .fc-grid {
@@ -945,7 +950,7 @@ with st.sidebar:
     st.markdown("""
         <div class="brand">
             <div class="brand-mark">🎓</div>
-            <div class="brand-text">Edu<span>Gen</span> AI</div>
+            <div class="brand-text">Lumina<span>AI</span></div>
         </div>
     """, unsafe_allow_html=True)
 
@@ -954,13 +959,12 @@ with st.sidebar:
         st.rerun()
 
     st.markdown('<div class="sidebar-divider"></div>', unsafe_allow_html=True)
-
-    st.markdown('<div class="grade-label">Learning Level</div>', unsafe_allow_html=True)
-    valid_grades = ["Professional", "College", "School"]
+    st.markdown('<div class="grade-label">Research Mode</div>', unsafe_allow_html=True)
     st.radio(
-        "Grade Level",
-        valid_grades,
-        key="grade_level",
+        "Research Mode",
+        ["Standard", "Multi-Agent"],
+        key="research_mode",
+        help="Standard is fast. Multi-Agent uses collaborative AI researchers for depth.",
         label_visibility="collapsed",
     )
 
@@ -1019,7 +1023,7 @@ if not active_session:
             <div class="hero-icon-img">🎓</div>
             <div class="hero-eyebrow">Your personal AI tutor</div>
             <h1 class="hero-title">What would you like to<br><em>learn today?</em></h1>
-            <p class="hero-sub">Enter any concept or topic below. EduGen creates a personalized learning experience with explanations, flashcards, and diagrams — tailored to your level.</p>
+            <p class="hero-sub">Master any topic with Lumina. Use <b>Standard Mode</b> for personalized study guides with flashcards and diagrams, or unlock <b>Multi-Agent Mode</b> for deep, autonomous research driven by a collaborative crew of specialized AI agents.</p>
             <div class="suggestions">
                 <div class="suggestion-pill">⚛️ Quantum entanglement</div>
                 <div class="suggestion-pill">📈 Machine learning basics</div>
@@ -1043,7 +1047,7 @@ else:
         with st.chat_message("user"):
             st.write(topic)
             st.markdown(
-                f'<div class="meta-pill">📚 {grade} &nbsp;·&nbsp; 🕐 {ts_str}</div>',
+                f'<div class="meta-pill">🕐 {ts_str}</div>',
                 unsafe_allow_html=True
             )
 
@@ -1051,60 +1055,77 @@ else:
             st.markdown("""
                 <div class="response-header">
                     <div class="response-header-dot"></div>
-                    <div class="response-header-text">EduGen Response</div>
+                    <div class="response-header-text">Lumina Response</div>
                 </div>
             """, unsafe_allow_html=True)
 
-            tabs = st.tabs(["📖  Overview", "🗂  Flashcards", "📊  Diagram"])
+            mode = turn.get("research_mode", "Standard")
+            
+            if "writer_report" in content or "final_report" in content:
+                # Multi-Agent Mode UI
+                tabs = st.tabs(["Study Guide", "Research Trace"])
+                
+                with tabs[0]:
+                    # The Writer's report
+                    report = content.get("writer_report") or content.get("final_report", "")
+                    st.markdown(report)
+                
+                with tabs[1]:
+                    # The Researcher's findings
+                    findings = content.get("research_findings", "No detailed research trace available.")
+                    st.markdown(findings)
+            else:
+                # Standard Mode UI
+                tabs = st.tabs(["📖  Overview", "🗂  Flashcards", "📊  Diagram"])
+                
+                with tabs[0]:
+                    overview = content.get("overview", "")
+                    if overview:
+                        st.markdown(overview)
 
-            with tabs[0]:
-                overview = content.get("overview", "")
-                if overview:
-                    st.markdown(overview)
+                    key_points = content.get("key_points", [])
+                    if key_points:
+                        st.markdown("#### 🎯 Key Takeaways")
+                        for p in key_points:
+                            st.markdown(f"- {p}")
 
-                key_points = content.get("key_points", [])
-                if key_points:
-                    st.markdown("#### 🎯 Key Takeaways")
-                    for p in key_points:
-                        st.markdown(f"- {p}")
+                    real_world = content.get("real_world_example")
+                    if real_world:
+                        st.markdown("#### 🌍 Real-World Context")
+                        st.info(real_world)
 
-                real_world = content.get("real_world_example")
-                if real_world:
-                    st.markdown("#### 🌍 Real-World Context")
-                    st.info(real_world)
+                    summary = content.get("summary")
+                    if summary:
+                        st.markdown("---")
+                        st.markdown("#### 📝 Summary")
+                        st.write(summary)
 
-                summary = content.get("summary")
-                if summary:
-                    st.markdown("---")
-                    st.markdown("#### 📝 Summary")
-                    st.write(summary)
+                with tabs[1]:
+                    fcs = content.get("flashcards", [])
+                    if not fcs:
+                        st.markdown(
+                            '<div style="text-align:center;padding:2.5rem;color:var(--text-3)">No flashcards available.</div>',
+                            unsafe_allow_html=True
+                        )
+                    else:
+                        cards_html = '<div class="fc-grid">'
+                        for i, fc in enumerate(fcs):
+                            cards_html += f'<div class="flashcard"><div class="flashcard-num">Card {i+1:02d}</div>{fc}</div>'
+                        cards_html += '</div>'
+                        st.markdown(cards_html, unsafe_allow_html=True)
 
-            with tabs[1]:
-                fcs = content.get("flashcards", [])
-                if not fcs:
-                    st.markdown(
-                        '<div style="text-align:center;padding:2.5rem;color:var(--text-3)">No flashcards available.</div>',
-                        unsafe_allow_html=True
-                    )
-                else:
-                    cards_html = '<div class="fc-grid">'
-                    for i, fc in enumerate(fcs):
-                        cards_html += f'<div class="flashcard"><div class="flashcard-num">Card {i+1:02d}</div>{fc}</div>'
-                    cards_html += '</div>'
-                    st.markdown(cards_html, unsafe_allow_html=True)
-
-            with tabs[2]:
-                diagram_b64 = images.get("diagram_b64")
-                if diagram_b64:
-                    try:
-                        st.image(base64.b64decode(diagram_b64), use_container_width=True)
-                    except Exception as e:
-                        st.error(f"Error displaying diagram: {e}")
-                else:
-                    st.markdown(
-                        '<div style="text-align:center;padding:2.5rem;color:var(--text-3)">No diagram generated for this topic.</div>',
-                        unsafe_allow_html=True
-                    )
+                with tabs[2]:
+                    diagram_b64 = images.get("diagram_b64")
+                    if diagram_b64:
+                        try:
+                            st.image(base64.b64decode(diagram_b64), use_container_width=True)
+                        except Exception as e:
+                            st.error(f"Error displaying diagram: {e}")
+                    else:
+                        st.markdown(
+                            '<div style="text-align:center;padding:2.5rem;color:var(--text-3)">No diagram generated for this topic.</div>',
+                            unsafe_allow_html=True
+                        )
 
 # Bottom anchor
 st.markdown('<div id="edugen-bottom-anchor" style="height:1px;"></div>', unsafe_allow_html=True)
@@ -1135,7 +1156,7 @@ if prompt := st.chat_input("Ask about any concept, topic, or idea…"):
 
     with st.chat_message("user"):
         st.write(prompt)
-        st.markdown(f'<div class="meta-pill">📚 {grade_level}</div>', unsafe_allow_html=True)
+        # No grade level pill here
 
     st.markdown("""
     <script>
@@ -1153,27 +1174,33 @@ if prompt := st.chat_input("Ask about any concept, topic, or idea…"):
         st.markdown("""
             <div class="response-header">
                 <div class="response-header-dot"></div>
-                <div class="response-header-text">EduGen Response</div>
+                <div class="response-header-text">Lumina Response</div>
             </div>
         """, unsafe_allow_html=True)
 
-        with st.spinner("✦ Crafting your personalized lesson…"):
+        mode = st.session_state.get("research_mode", "Standard")
+        with st.spinner(f"✦ {'Collaborating with AI Agents...' if mode == 'Multi-Agent' else 'Crafting your personalized lesson...'}"):
             try:
-                content_res = requests.post(f"{API_URL}/generate-content", json=payload, timeout=300)
+                if mode == "Multi-Agent":
+                    content_res = requests.post(f"{API_URL}/generate-agentic", json=payload, timeout=600)
+                    images = {}
+                else:
+                    content_res = requests.post(f"{API_URL}/generate-content", json=payload, timeout=300)
+                    if content_res.status_code == 200:
+                        image_res = requests.post(f"{API_URL}/generate-image", json=payload, timeout=300)
+                        images = image_res.json() if image_res.status_code == 200 else {}
+                    else:
+                        images = {}
+
                 if content_res.status_code != 200:
                     st.error(f"❌ API Error: {content_res.text}")
                     st.stop()
                 content = content_res.json()
-                if content.get("error"):
-                    st.error(f"❌ {content['error']}")
-                    st.stop()
-
-                image_res = requests.post(f"{API_URL}/generate-image", json=payload, timeout=300)
-                images = image_res.json() if image_res.status_code == 200 else {}
 
                 turn_data = {
                     "topic": prompt, "grade": grade_level,
                     "content": content, "images": images,
+                    "research_mode": mode,
                     "timestamp": time.time(),
                 }
 

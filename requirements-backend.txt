@@ -4,3 +4,7 @@ sentence-transformers
 python-dotenv
 requests
 numpy
+crewai
+langchain-google-genai
+langchain-community
+crewai-tools

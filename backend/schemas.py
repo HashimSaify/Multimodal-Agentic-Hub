@@ -1,4 +1,4 @@
-﻿from pydantic import BaseModel
+from pydantic import BaseModel
 from typing import List, Optional
 
 
@@ -19,5 +19,13 @@ class GenerateContentResponse(BaseModel):
 class GenerateImageRequest(BaseModel):
     topic: str
     grade_level: Optional[str] = None
+
+
+class AgenticContentResponse(BaseModel):
+    topic: str
+    writer_report: str
+    research_findings: str
+    final_report: Optional[str] = None
+    status: str
 
 

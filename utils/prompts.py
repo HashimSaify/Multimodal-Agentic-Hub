@@ -1,4 +1,4 @@
-﻿def _infer_subject(topic: str) -> str:
+def _infer_subject(topic: str) -> str:
     t = topic.lower()
     if any(k in t for k in ["physics", "force", "energy", "motion", "optics"]):
         return "physics"
@@ -27,14 +27,16 @@ If it is academic/scientific, answer with YES.
 Respond with EXACTLY ONE WORD: YES or NO.
 """.strip()
 
-def build_prompt(topic: str, grade_level: str | None):
-    grade_text = f" for {grade_level} students" if grade_level else ""
+def build_prompt(topic: str, grade_level: str | None = None):
+    # Overriding any input to Professional as per project refinement
+    grade_level = "Professional"
+    grade_text = f" for {grade_level} students"
     subject = _infer_subject(topic)
     return f"""
 You are an expert education assistant.
 
 Your task is to explain the topic "{topic}"{grade_text}.
-Adjust depth and vocabulary for {grade_level or 'a general audience'}.
+Adjust depth and vocabulary for {grade_level}.
 Focus on clear structure and accuracy for {subject}.
 
 Return ONLY valid JSON with EXACTLY these fields:

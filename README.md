@@ -1,4 +1,4 @@
-# 🎓 EduGen AI: High-Fidelity Multimodal Education Platform
+# 🎓 Lumina AI: High-Fidelity Multimodal Education Platform
 
 [![Kubernetes](https://img.shields.io/badge/Kubernetes-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)](https://kubernetes.io/)
 [![AWS EKS](https://img.shields.io/badge/AWS_EKS-232F3E?style=for-the-badge&logo=amazon-aws&logoColor=white)](https://aws.amazon.com/eks/)
@@ -6,7 +6,7 @@
 [![Streamlit](https://img.shields.io/badge/Streamlit-FF4B4B?style=for-the-badge&logo=streamlit&logoColor=white)](https://streamlit.io/)
 [![Google Gemini](https://img.shields.io/badge/Google_Gemini-4285F4?style=for-the-badge&logo=google&logoColor=white)](https://ai.google.dev/)
 
-**EduGen AI** is an institutional-grade, multimodal Generative AI platform designed to transform complex topics into structured, visually-rich educational "Concept Packs." By leveraging cutting-edge LLMs and specialized image generation, it tailors learning experiences for everyone from elementary students to professional researchers.
+**Lumina AI** is an institutional-grade, multimodal Generative AI platform designed to transform complex topics into structured, visually-rich educational "Concept Packs." By leveraging cutting-edge LLMs and specialized image generation, it tailors learning experiences for everyone from elementary students to professional researchers.
 
 ---
 
@@ -16,6 +16,7 @@
 *   **🎯 Grade-Level Tailoring**: Dynamically adjusts vocabulary, complexity, and examples for **Elementary**, **High School**, **College**, and **Professional** audiences.
 *   **🔠 Structured Knowledge**: Generates structured JSON output containing narratives, key concepts, flashcards, and summary points.
 *   **🖼️ Visual Flashcards**: Integrates specialized Image Generation APIs to create complementary visuals for every major concept.
+*   **🔍 Multi-Agent Research**: Utilizes a collaborative crew of AI agents (Researcher & Writer) equipped with real-time web search and scraping for deep, authentic knowledge retrieval.
 *   **🚀 Production-Ready Architecture**: Built for the cloud with specialized container optimization and multi-environment Kubernetes support.
 
 ---

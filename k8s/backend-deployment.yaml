@@ -58,6 +58,11 @@ spec:
             secretKeyRef:
               name: edugen-secrets
               key: IMAGE_API_KEY
+        - name: SERPER_API_KEY
+          valueFrom:
+            secretKeyRef:
+              name: edugen-secrets
+              key: SERPER_API_KEY
         - name: LLM_MODEL
           value: "gemini-3-flash-preview"
         - name: LLM_BASE_URL
