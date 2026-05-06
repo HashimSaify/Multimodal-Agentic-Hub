@@ -64,12 +64,12 @@ spec:
               name: lumina-secrets
               key: SERPER_API_KEY
         - name: LLM_MODEL
-          value: "gemini-3-flash-preview"
+          value: "google/gemini-2.0-flash-001"
         - name: LLM_BASE_URL
-          value: "https://generativelanguage.googleapis.com/v1beta"
+          value: "https://openrouter.ai/api/v1/chat/completions"
         - name: IMAGE_MODEL
-          value: "img4"
+          value: "black-forest-labs/FLUX.1-schnell"
         - name: IMAGE_BASE_URL
-          value: "https://api.infip.pro/v1"
+          value: "https://router.huggingface.co/hf-inference/models/"
         - name: LOG_LEVEL
           value: "INFO"

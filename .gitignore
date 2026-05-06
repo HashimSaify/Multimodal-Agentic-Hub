@@ -29,6 +29,7 @@ ENV/
 # Environment Variables
 .env
 .env.test
+k8s/secrets.yaml
 
 # IDEs
 .vscode/
