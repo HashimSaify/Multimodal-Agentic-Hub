@@ -12,7 +12,7 @@ class GenerateContentResponse(BaseModel):
     overview: Optional[str] = None
     key_points: Optional[List[str]] = None
     real_world_example: Optional[str] = None
-    flashcards: Optional[List[str]] = None
+    flashcards: Optional[List[dict]] = None
     summary: Optional[str] = None
 
 

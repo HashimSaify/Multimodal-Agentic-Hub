@@ -34,14 +34,45 @@ def _safe_json(text: str) -> dict:
             new_fc = []
             for item in data["flashcards"]:
                 if isinstance(item, dict):
-                    q = item.get("question", "") or item.get("front", "") or item.get("term", "")
-                    a = item.get("answer", "") or item.get("back", "") or item.get("definition", "")
-                    if q and a:
-                        new_fc.append(f"**{q}**<br>{a}")
+                    q = item.get("front") or item.get("question") or item.get("term") or item.get("q")
+                    a = item.get("back") or item.get("answer") or item.get("definition") or item.get("a")
+                    
+                    if not q and not a:
+                        # If both are missing, use the whole item as back
+                        q = "Question"
+                        a = str(item)
+                    elif not q:
+                        q = "Question"
+                    elif not a:
+                        a = "See front"
+                        
+                    # Strip redundant labels
+                    q = q.replace("Front:", "").replace("front:", "").replace("Question:", "").strip()
+                    a = a.replace("Back:", "").replace("back:", "").replace("Answer:", "").strip()
+                    new_fc.append({"front": q, "back": a})
+                elif isinstance(item, str):
+                    # Handle cases where model returns a single string with labels
+                    import re
+                    # Look for Front: and Back: potentially wrapped in asterisks
+                    f_pattern = r'(?:\*\*|)?Front:(?:\*\*|)?\s*(.*?)\s*(?:\*\*|)?Back:(?:\*\*|)?'
+                    b_pattern = r'(?:\*\*|)?Back:(?:\*\*|)?\s*(.*)'
+                    
+                    f_match = re.search(f_pattern, item, re.IGNORECASE | re.DOTALL)
+                    b_match = re.search(b_pattern, item, re.IGNORECASE | re.DOTALL)
+                    
+                    if f_match and b_match:
+                        new_fc.append({"front": f_match.group(1).strip(), "back": b_match.group(2).strip()})
+                    elif "|||" in item:
+                        parts = item.split("|||", 1)
+                        new_fc.append({"front": parts[0].strip(), "back": parts[1].strip()})
+                    elif " - " in item:
+                        parts = item.split(" - ", 1)
+                        new_fc.append({"front": parts[0].strip(), "back": parts[1].strip()})
+                    elif ":" in item:
+                        parts = item.split(":", 1)
+                        new_fc.append({"front": parts[0].strip(), "back": parts[1].strip()})
                     else:
-                        new_fc.append(str(item))
-                else:
-                    new_fc.append(str(item))
+                        new_fc.append({"front": "Key Concept", "back": item.strip()})
             data["flashcards"] = new_fc
         return data
     except json.JSONDecodeError:
@@ -65,30 +96,25 @@ def _cached_generate_content(topic: str, grade_level: str):
         raise RuntimeError("LLM_API_KEY is not set in environment")
 
     headers = {
-        "Content-Type": "application/json"
+        "Content-Type": "application/json",
+        "Authorization": f"Bearer {api_key}",
+        "HTTP-Referer": "https://multimodal-agentic-hub.local", # Required by OpenRouter
+        "X-Title": "Multimodal Agentic Hub" # Required by OpenRouter
     }
     
-    # Ensure model_name doesn't already have 'models/' prefix
-    if not model_name.startswith("models/"):
-        model_path = f"models/{model_name}"
-    else:
-        model_path = model_name
+    url = base_url
 
-    url = f"{base_url.rstrip('/')}/{model_path}:generateContent?key={api_key}"
-
-    # Step 1: Validate Topic
+    # OpenAI-compatible payload (works with OpenRouter)
     val_payload = {
-        "contents": [{
-            "parts": [{"text": build_validation_prompt(topic)}]
-        }],
-        "generationConfig": {
-            "temperature": 0.1
-        }
+        "model": model_name,
+        "messages": [{"role": "user", "content": build_validation_prompt(topic)}],
+        "temperature": 0.1,
+        "max_tokens": 10
     }
     try:
         val_res = requests.post(url, headers=headers, json=val_payload, timeout=30)
         if val_res.status_code == 200:
-            val_text = val_res.json()["candidates"][0]["content"]["parts"][0]["text"].strip().upper()
+            val_text = val_res.json()["choices"][0]["message"]["content"].strip().upper()
             if "NO" in val_text and "YES" not in val_text:
                 return {
                     "error": "This topic does not appear to be related to education. Please ask about an academic subject, concept, or formal skill."
@@ -105,24 +131,22 @@ def _cached_generate_content(topic: str, grade_level: str):
     prompt = build_prompt(topic, grade_level or None)
     
     payload = {
-        "contents": [{
-            "parts": [{"text": prompt}]
-        }],
-        "generationConfig": {
-            "temperature": 0.3
-        }
+        "model": model_name,
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.3,
+        "max_tokens": 2048
     }
 
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=90)
         response.raise_for_status()
-        text_out = response.json()["candidates"][0]["content"]["parts"][0]["text"]
+        text_out = response.json()["choices"][0]["message"]["content"]
         return _safe_json(text_out)
     except Exception as e:
         err_msg = str(e)
         if hasattr(e, 'response') and e.response is not None:
             err_msg += f" - Response: {e.response.text}"
-        raise RuntimeError(f"Gemini API request failed: {err_msg}")
+        raise RuntimeError(f"LLM API request failed: {err_msg}")
 
 
 def generate_content(topic: str, grade_level: Optional[str]) -> GenerateContentResponse:

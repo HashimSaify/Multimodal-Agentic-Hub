@@ -637,56 +637,141 @@ def inject_css():
         word-break: break-all !important;
     }
 
+    /* ============================================================
+       STUDY GUIDE & MARKDOWN LAYOUT (Specific to Responses)
+    ============================================================ */
+    .study-guide-content {
+        line-height: 1.8;
+    }
+
+    .study-guide-content h1, 
+    .study-guide-content h2, 
+    .study-guide-content h3 {
+        color: var(--text) !important;
+        margin-top: 2.2rem !important;
+        margin-bottom: 1.2rem !important;
+        font-weight: 700 !important;
+    }
+
+    .study-guide-content h1 { 
+        font-size: 2rem !important; 
+        color: var(--gold) !important;
+        border-bottom: 1px solid var(--border-2);
+        padding-bottom: 0.6rem;
+    }
+
+    .study-guide-content h2 { 
+        font-size: 1.5rem !important; 
+        color: var(--violet-light) !important;
+        margin-top: 2.5rem !important;
+    }
+
+    .study-guide-content h3 { 
+        font-size: 1.2rem !important; 
+        color: var(--text) !important;
+    }
+
+    .study-guide-content p {
+        margin-bottom: 1.2rem !important;
+        color: var(--text-2);
+    }
+
+    .study-guide-content ul, 
+    .study-guide-content ol {
+        margin-bottom: 1.5rem !important;
+    }
+
+    .study-guide-content li {
+        margin-bottom: 0.6rem !important;
+        color: var(--text-2);
+    }
+
+    .study-guide-content strong {
+        color: var(--gold-light) !important;
+    }
+
     .fc-grid {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(min(260px, 100%), 1fr));
-        gap: 14px;
+        grid-template-columns: repeat(auto-fill, minmax(min(280px, 100%), 1fr));
+        gap: 20px;
         width: 100%;
+        perspective: 1000px;
+    }
+
+    .flashcard-container {
+        min-height: 220px;
+        cursor: pointer;
+        perspective: 1000px;
+        margin-bottom: 20px;
     }
 
     .flashcard {
         position: relative;
-        background: var(--bg-3);
-        border: 1px solid var(--border);
-        border-radius: var(--radius);
-        padding: 20px;
-        margin-bottom: 14px;
-        font-size: 0.88rem;
-        line-height: 1.75;
-        color: var(--text-2);
-        transition: all 0.22s cubic-bezier(.16,1,.3,1);
-        overflow: hidden;
-        box-shadow: var(--shadow-sm);
+        width: 100%;
+        height: 100%;
+        min-height: 220px;
+        text-align: center;
+        transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+        transform-style: preserve-3d;
     }
 
-    .flashcard::before {
-        content: '';
+    .flashcard-container:hover .flashcard {
+        transform: rotateY(180deg);
+    }
+
+    .flashcard-front, .flashcard-back {
         position: absolute;
-        top: 0; left: 0;
-        width: 3px; height: 100%;
-        background: linear-gradient(180deg, var(--gold), var(--violet));
-        opacity: 0;
-        transition: opacity 0.22s;
+        width: 100%;
+        height: 100%;
+        min-height: 220px;
+        -webkit-backface-visibility: hidden;
+        backface-visibility: hidden;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 24px;
+        border-radius: var(--radius-lg);
+        border: 1px solid var(--border-2);
+        box-shadow: var(--shadow-md);
+        overflow-y: auto; /* Allow scrolling for long text */
     }
 
-    .flashcard:hover {
-        border-color: var(--gold-glow);
+    .flashcard-front {
+        background: var(--bg-3);
+        color: var(--text);
+    }
+
+    .flashcard-back {
         background: var(--surface);
         color: var(--text);
-        transform: translateY(-3px);
-        box-shadow: var(--shadow-md);
-    }
-
-    .flashcard:hover::before {
-        opacity: 1;
+        transform: rotateY(180deg);
+        border-color: var(--gold-glow);
     }
 
     .flashcard-num {
-        font-size: 0.65rem;
+        position: absolute;
+        top: 14px;
+        left: 18px;
+        font-size: 0.6rem;
         font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.1em;
         color: var(--text-3);
+    }
+
+    .fc-content {
+        font-size: 0.95rem;
+        font-weight: 500;
+        line-height: 1.6;
+    }
+
+    .fc-label {
+        font-size: 0.55rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--gold);
         margin-bottom: 8px;
     }
 
@@ -1061,14 +1146,23 @@ else:
 
             mode = turn.get("research_mode", "Standard")
             
-            if "writer_report" in content or "final_report" in content:
+            if mode == "Multi-Agent":
                 # Multi-Agent Mode UI
-                tabs = st.tabs(["Study Guide", "Research Trace"])
+                tabs = st.tabs(["📖 Study Guide", "🔍 Research Trace"])
                 
                 with tabs[0]:
                     # The Writer's report
                     report = content.get("writer_report") or content.get("final_report", "")
-                    st.markdown(report)
+                    # Strip markdown code fences if they exist
+                    if report.startswith("```markdown"):
+                        report = report.replace("```markdown", "", 1)
+                    if report.startswith("```"):
+                        report = report.replace("```", "", 1)
+                    if report.endswith("```"):
+                        report = report.rsplit("```", 1)[0]
+                    
+                    # Render markdown inside a styled div with newlines to ensure parsing works
+                    st.markdown(f'<div class="study-guide-content">\n\n{report}\n\n</div>', unsafe_allow_html=True)
                 
                 with tabs[1]:
                     # The Researcher's findings
@@ -1110,7 +1204,10 @@ else:
                     else:
                         cards_html = '<div class="fc-grid">'
                         for i, fc in enumerate(fcs):
-                            cards_html += f'<div class="flashcard"><div class="flashcard-num">Card {i+1:02d}</div>{fc}</div>'
+                            front = fc.get("front", "Concept") if isinstance(fc, dict) else "Concept"
+                            back = fc.get("back", str(fc)) if isinstance(fc, dict) else str(fc)
+                            # Use a single-line string or ensure no leading indentation to avoid Markdown code blocks
+                            cards_html += f'<div class="flashcard-container"><div class="flashcard"><div class="flashcard-front"><div class="flashcard-num">Card {i+1:02d}</div><div class="fc-label">Question</div><div class="fc-content">{front}</div></div><div class="flashcard-back"><div class="fc-label">Answer</div><div class="fc-content">{back}</div></div></div></div>'
                         cards_html += '</div>'
                         st.markdown(cards_html, unsafe_allow_html=True)
 

@@ -44,7 +44,10 @@ Return ONLY valid JSON with EXACTLY these fields:
   "overview": "string",
   "key_points": ["string", "string"],
   "real_world_example": "string",
-  "flashcards": ["string", "string"],
+  "flashcards": [
+    {{"front": "Question/Term (NO 'Front:' label)", "back": "Answer/Definition (NO 'Back:' label)"}},
+    {{"front": "Question/Term", "back": "Answer/Definition"}}
+  ],
   "summary": "string"
 }}
 """.strip()

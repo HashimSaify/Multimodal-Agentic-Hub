@@ -1,4 +1,4 @@
-﻿import os
+import os
 import base64
 import requests
 from functools import lru_cache
@@ -6,8 +6,8 @@ from typing import Optional
 
 def _call_custom_api(prompt: str) -> str:
     api_key = os.getenv("IMAGE_API_KEY")
-    model_name = os.getenv("IMAGE_MODEL", "provider-4/imagen-4")
-    base_url = os.getenv("IMAGE_BASE_URL", "https://api.a4f.co/v1")
+    model_name = os.getenv("IMAGE_MODEL", "stabilityai/stable-diffusion-xl-base-1.0")
+    base_url = os.getenv("IMAGE_BASE_URL", "https://api-inference.huggingface.co/models/")
 
     if not api_key:
         raise RuntimeError("IMAGE_API_KEY is not set in .env")
@@ -17,33 +17,35 @@ def _call_custom_api(prompt: str) -> str:
         "Content-Type": "application/json"
     }
 
-    clean_base_url = base_url.split("/images/generations")[0].rstrip("/")
-    url = f"{clean_base_url}/images/generations"
+    # Hugging Face Inference API URL format
+    url = f"{base_url.rstrip('/')}/{model_name}"
     
     payload = {
-        "model": model_name,
-        "prompt": prompt,
-        "n": 1,
-        "size": "1024x1024",
-        "response_format": "url"
+        "inputs": prompt,
     }
 
     try:
         response = requests.post(url, headers=headers, json=payload, timeout=180)
+        
+        # Check if the model is still loading (common in HF Inference API)
+        if response.status_code == 503:
+            # You might want to retry or handle this, but for now we'll just report it
+            raise RuntimeError("Hugging Face model is still loading. Please try again in a few seconds.")
+            
         response.raise_for_status()
-        data = response.json()
         
-        image_url = data["data"][0]["url"]
-        
-        # Download the image from the URL and convert to Base64
-        image_res = requests.get(image_url, timeout=60)
-        image_res.raise_for_status()
-        return base64.b64encode(image_res.content).decode("utf-8")
+        # Hugging Face returns raw bytes for images
+        return base64.b64encode(response.content).decode("utf-8")
         
     except Exception as e:
         err_msg = str(e)
         if hasattr(e, 'response') and e.response is not None:
-            err_msg += f" - Response: {e.response.text}"
+            try:
+                error_data = e.response.json()
+                if "error" in error_data:
+                    err_msg = error_data["error"]
+            except:
+                err_msg += f" - Response: {e.response.text}"
         raise RuntimeError(f"Image API error: {err_msg}")
 
 

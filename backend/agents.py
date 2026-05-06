@@ -6,12 +6,12 @@ from crewai_tools import SerperDevTool, ScrapeWebsiteTool
 def get_llm(temperature=0.3):
     api_key = os.getenv("LLM_API_KEY")
     if api_key:
-        os.environ["GOOGLE_API_KEY"] = api_key
+        os.environ["OPENROUTER_API_KEY"] = api_key
     
-    model_name = os.getenv("LLM_MODEL", "gemini-1.5-flash")
-    # For CrewAI, use the 'gemini/' prefix to trigger LiteLLM correctly
-    if not model_name.startswith("gemini/"):
-        return f"gemini/{model_name}"
+    model_name = os.getenv("LLM_MODEL", "google/gemini-2.0-flash-001")
+    # For CrewAI/LiteLLM, use the 'openrouter/' prefix
+    if not model_name.startswith("openrouter/"):
+        return f"openrouter/{model_name}"
     return model_name
 
 class ResearcherAgent:
@@ -80,13 +80,15 @@ class WriterAgent:
             description=dedent(f"""
                 Using the research provided by the Researcher, create a comprehensive Study Guide for the topic "{topic}".
                 
-                The Study Guide should be in Markdown and include:
-                - A clear Title
-                - Detailed Overview
-                - Key Concepts explained simply
-                - Practical Examples
-                - Summary Conclusion
+                The Study Guide should be well-structured and include:
+                - # [Topic Title]
+                - ## Overview (A detailed introduction)
+                - ## Key Concepts (Explained simply with bullet points)
+                - ## Real-World Examples (Practical applications)
+                - ## Summary (A brief conclusion)
+                
+                IMPORTANT: DO NOT wrap your entire response in triple backticks (```markdown). Return the raw Markdown content directly.
             """).strip(),
             agent=agent,
-            expected_output="A well-formatted Markdown Study Guide."
+            expected_output="A well-formatted Markdown Study Guide with clear headings."
         )
